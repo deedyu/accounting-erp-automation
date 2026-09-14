@@ -1,0 +1,11 @@
+﻿voucher_id,column,error_type
+JV202608001,debit_account_1,존재하지 않는 계정과목
+JV202608002,partner_code,존재하지 않는 거래처
+JV202608003,department_code,존재하지 않는 부서
+JV202608004,debit_amount_1,차변·대변 불일치
+JV202608005,vat_amount,부가세 계산 오류
+JV202608006,evidence_no,필수값 누락
+JV202608007,evidence_no,증빙번호 중복
+JV202608008,transaction_date,회계기간 이탈
+JV202608009,description,필수값 누락
+JV202608010,total_amount,전표 합계 불일치

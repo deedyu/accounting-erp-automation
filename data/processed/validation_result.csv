@@ -1,0 +1,11 @@
+﻿voucher_id,column,error_type,detail
+JV202608001,debit_account_1,존재하지 않는 계정과목,9999 계정과목 기준표에 없음
+JV202608002,partner_code,존재하지 않는 거래처,V999 거래처 기준표에 없음
+JV202608003,department_code,존재하지 않는 부서,D999 부서 기준표에 없음
+JV202608004,debit_amount_1,차변·대변 불일치,"차변 670,000원 / 대변 660,000원"
+JV202608005,vat_amount,부가세 계산 오류,"입력 100,000원 / 예상 150,000원"
+JV202608006,evidence_no,필수값 누락,evidence_no 값 누락
+JV202608007,evidence_no,증빙번호 중복,TAX-202608-004: 중복 증빙
+JV202608008,transaction_date,회계기간 이탈,2026-09-05: 8월 회계기간 아님
+JV202608009,description,필수값 누락,description 값 누락
+JV202608010,total_amount,전표 합계 불일치,"입력 5,400,000원 / 분개 5,500,000원"

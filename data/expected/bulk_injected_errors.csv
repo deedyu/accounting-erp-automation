@@ -1,0 +1,51 @@
+﻿error_id,voucher_id,column,error_type,original_value,injected_value
+ERR001,JV2026081315,vat_amount,부가세 계산 오류,448000,458000
+ERR002,JV2026081286,debit_amount_1,차변·대변 불일치,1330000,1340000
+ERR003,JV2026081353,debit_amount_1,차변·대변 불일치,9174000,9184000
+ERR004,JV2026081373,description,필수값 누락,검사용 소모품 구매,
+ERR005,JV2026081125,partner_code,존재하지 않는 거래처,C003,V999
+ERR006,JV2026081330,evidence_no,증빙번호 중복,TAX-202608-0330,CARD-202608-0001
+ERR007,JV2026081095,transaction_date,회계기간 이탈,2026-08-21 00:00:00,2026-09-05 00:00:00
+ERR008,JV2026081444,evidence_no,증빙번호 중복,TAX-202608-0444,CARD-202608-0001
+ERR009,JV2026081399,evidence_no,증빙번호 중복,TAX-202608-0399,CARD-202608-0001
+ERR010,JV2026081470,evidence_no,필수값 누락,TAX-202608-0470,
+ERR011,JV2026081443,total_amount,전표 합계 불일치,47201000,47191000
+ERR012,JV2026081349,description,필수값 누락,고무호스 제품 외상 판매,
+ERR013,JV2026081372,total_amount,전표 합계 불일치,4422000,4412000
+ERR014,JV2026081112,total_amount,전표 합계 불일치,7766000,7756000
+ERR015,JV2026081207,debit_account_1,존재하지 않는 계정과목,5150,9999
+ERR016,JV2026081228,evidence_no,증빙번호 중복,TAX-202608-0228,CARD-202608-0001
+ERR017,JV2026081117,total_amount,전표 합계 불일치,8525000,8515000
+ERR018,JV2026081267,description,필수값 누락,제품 포장재 구매,
+ERR019,JV2026081077,partner_code,존재하지 않는 거래처,C004,V999
+ERR020,JV2026081251,debit_amount_1,차변·대변 불일치,1490000,1500000
+ERR021,JV2026081211,total_amount,전표 합계 불일치,231000,221000
+ERR022,JV2026081063,evidence_no,필수값 누락,CARD-202608-0063,
+ERR023,JV2026081441,department_code,존재하지 않는 부서,D002,D999
+ERR024,JV2026081289,evidence_no,필수값 누락,TAX-202608-0289,
+ERR025,JV2026081322,vat_amount,부가세 계산 오류,458000,468000
+ERR026,JV2026081472,description,필수값 누락,현장 안전용품 구매,
+ERR027,JV2026081218,department_code,존재하지 않는 부서,D001,D999
+ERR028,JV2026081304,transaction_date,회계기간 이탈,2026-08-15 00:00:00,2026-09-05 00:00:00
+ERR029,JV2026081137,transaction_date,회계기간 이탈,2026-08-29 00:00:00,2026-09-05 00:00:00
+ERR030,JV2026081247,partner_code,존재하지 않는 거래처,C002,V999
+ERR031,JV2026081083,debit_amount_1,차변·대변 불일치,6050000,6060000
+ERR032,JV2026081152,transaction_date,회계기간 이탈,2026-08-22 00:00:00,2026-09-05 00:00:00
+ERR033,JV2026081253,department_code,존재하지 않는 부서,D007,D999
+ERR034,JV2026081144,transaction_date,회계기간 이탈,2026-08-29 00:00:00,2026-09-05 00:00:00
+ERR035,JV2026081345,department_code,존재하지 않는 부서,D006,D999
+ERR036,JV2026081461,vat_amount,부가세 계산 오류,440000,450000
+ERR037,JV2026081069,evidence_no,증빙번호 중복,TAX-202608-0069,CARD-202608-0001
+ERR038,JV2026081209,partner_code,존재하지 않는 거래처,C003,V999
+ERR039,JV2026081016,debit_amount_1,차변·대변 불일치,5010000,5020000
+ERR040,JV2026081197,debit_account_1,존재하지 않는 계정과목,5130,9999
+ERR041,JV2026081489,evidence_no,필수값 누락,TAX-202608-0489,
+ERR042,JV2026081476,vat_amount,부가세 계산 오류,325000,335000
+ERR043,JV2026081177,debit_account_1,존재하지 않는 계정과목,1130,9999
+ERR044,JV2026081463,department_code,존재하지 않는 부서,D002,D999
+ERR045,JV2026081180,debit_account_1,존재하지 않는 계정과목,5140,9999
+ERR046,JV2026081374,partner_code,존재하지 않는 거래처,V003,V999
+ERR047,JV2026081168,evidence_no,필수값 누락,TAX-202608-0168,
+ERR048,JV2026081195,debit_account_1,존재하지 않는 계정과목,5130,9999
+ERR049,JV2026081157,vat_amount,부가세 계산 오류,58000,68000
+ERR050,JV2026081409,description,필수값 누락,생산1공장 전기요금,

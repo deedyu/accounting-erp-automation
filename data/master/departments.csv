@@ -1,0 +1,8 @@
+department_code,department_name,cost_center,main_role,is_active
+D001,경영지원팀,CC100,회계 및 경영관리,Y
+D002,구매팀,CC200,원재료 및 소모품 구매,Y
+D003,생산1팀,CC310,자동차부품 생산,Y
+D004,생산2팀,CC320,자동차부품 생산,Y
+D005,품질관리팀,CC400,제품 품질검사,Y
+D006,영업팀,CC500,제품 판매 및 고객관리,Y
+D007,물류팀,CC600,제품 출하 및 운송관리,Y

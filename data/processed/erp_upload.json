@@ -1,0 +1,345 @@
+[
+  {
+    "voucher_id": "JV202608101",
+    "transaction_date": "2026-08-01",
+    "department_code": "D002",
+    "partner_code": "V001",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-001"
+    },
+    "description": "고무 원재료 외상 매입",
+    "remarks": "8월 원재료 구매",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 1210,
+        "account_name": "원재료",
+        "amount": 5000000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 500000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2110,
+        "account_name": "외상매입금",
+        "amount": 5500000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608102",
+    "transaction_date": "2026-08-02",
+    "department_code": "D003",
+    "partner_code": "V003",
+    "evidence": {
+      "type": "법인카드",
+      "number": "NORMAL-CARD-202608-001"
+    },
+    "description": "생산 작업용 장갑 구매",
+    "remarks": "생산1팀 사용",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 5130,
+        "account_name": "소모품비",
+        "amount": 200000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 20000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2140,
+        "account_name": "카드미지급금",
+        "amount": 220000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608103",
+    "transaction_date": "2026-08-03",
+    "department_code": "D007",
+    "partner_code": "V004",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-002"
+    },
+    "description": "제품 포장재 외상 구매",
+    "remarks": "출하용 포장재",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 5130,
+        "account_name": "소모품비",
+        "amount": 800000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 80000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2110,
+        "account_name": "외상매입금",
+        "amount": 880000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608104",
+    "transaction_date": "2026-08-05",
+    "department_code": "D007",
+    "partner_code": "V005",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-003"
+    },
+    "description": "제품 납품 운송비",
+    "remarks": "8월 1주차 운송비",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 5140,
+        "account_name": "운반비",
+        "amount": 600000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 60000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2120,
+        "account_name": "미지급금",
+        "amount": 660000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608105",
+    "transaction_date": "2026-08-08",
+    "department_code": "D003",
+    "partner_code": "V006",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-004"
+    },
+    "description": "공장 전기요금",
+    "remarks": "생산공장 전력 사용",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 5150,
+        "account_name": "전력비",
+        "amount": 1500000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 150000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2120,
+        "account_name": "미지급금",
+        "amount": 1650000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608106",
+    "transaction_date": "2026-08-10",
+    "department_code": "D002",
+    "partner_code": "V007",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-005"
+    },
+    "description": "생산설비 외상 구매",
+    "remarks": "검사설비 구매",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 1510,
+        "account_name": "기계장치",
+        "amount": 20000000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 2000000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2120,
+        "account_name": "미지급금",
+        "amount": 22000000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608107",
+    "transaction_date": "2026-08-12",
+    "department_code": "D001",
+    "partner_code": "V008",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-TAX-202608-006"
+    },
+    "description": "회계 자문 수수료",
+    "remarks": "8월 회계 자문",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 5160,
+        "account_name": "지급수수료",
+        "amount": 1000000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "차변",
+        "account_code": 1180,
+        "account_name": "부가세대급금",
+        "amount": 100000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2120,
+        "account_name": "미지급금",
+        "amount": 1100000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608108",
+    "transaction_date": "2026-08-15",
+    "department_code": "D006",
+    "partner_code": "C001",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-SALE-202608-001"
+    },
+    "description": "자동차용 고무부품 외상 판매",
+    "remarks": "8월 1차 제품 납품",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 1130,
+        "account_name": "외상매출금",
+        "amount": 13200000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "대변",
+        "account_code": 4110,
+        "account_name": "제품매출",
+        "amount": 12000000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2180,
+        "account_name": "부가세예수금",
+        "amount": 1200000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608109",
+    "transaction_date": "2026-08-18",
+    "department_code": "D006",
+    "partner_code": "C002",
+    "evidence": {
+      "type": "전자세금계산서",
+      "number": "NORMAL-SALE-202608-002"
+    },
+    "description": "자동차용 씰링부품 외상 판매",
+    "remarks": "8월 2차 제품 납품",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 1130,
+        "account_name": "외상매출금",
+        "amount": 8800000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "대변",
+        "account_code": 4110,
+        "account_name": "제품매출",
+        "amount": 8000000
+      },
+      {
+        "line_no": 3,
+        "debit_credit_type": "대변",
+        "account_code": 2180,
+        "account_name": "부가세예수금",
+        "amount": 800000
+      }
+    ]
+  },
+  {
+    "voucher_id": "JV202608110",
+    "transaction_date": "2026-08-20",
+    "department_code": "D001",
+    "partner_code": "V001",
+    "evidence": {
+      "type": "계좌이체",
+      "number": "NORMAL-BANK-202608-001"
+    },
+    "description": "원재료 외상매입금 지급",
+    "remarks": "JV202608001 대금 지급",
+    "journal_lines": [
+      {
+        "line_no": 1,
+        "debit_credit_type": "차변",
+        "account_code": 2110,
+        "account_name": "외상매입금",
+        "amount": 5500000
+      },
+      {
+        "line_no": 2,
+        "debit_credit_type": "대변",
+        "account_code": 1110,
+        "account_name": "보통예금",
+        "amount": 5500000
+      }
+    ]
+  }
+]

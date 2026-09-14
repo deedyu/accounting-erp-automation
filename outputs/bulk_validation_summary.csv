@@ -1,0 +1,2 @@
+﻿total_transactions,detected_errors,correct_detections,missed_errors,unexpected_detections,precision,recall,ready_transactions,review_transactions
+500,50,50,0,0,1.0,1.0,450,50

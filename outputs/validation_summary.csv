@@ -1,0 +1,2 @@
+﻿test_data,total_transactions,expected_errors,detected_errors,correct_detections,missed_errors,unexpected_detections,precision,recall
+합성 오류 분개장,10,10,10,10,0,0,1.0,1.0

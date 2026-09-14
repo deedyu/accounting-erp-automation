@@ -1,0 +1,11 @@
+﻿error_type,column,error_count
+부가세 계산 오류,vat_amount,5
+전표 합계 불일치,total_amount,5
+존재하지 않는 거래처,partner_code,5
+존재하지 않는 계정과목,debit_account_1,5
+존재하지 않는 부서,department_code,5
+증빙번호 중복,evidence_no,5
+차변·대변 불일치,debit_amount_1,5
+필수값 누락,description,5
+필수값 누락,evidence_no,5
+회계기간 이탈,transaction_date,5
