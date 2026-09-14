@@ -34,24 +34,15 @@
 
 ```mermaid
 flowchart TD
-
-A[가상 엑셀 분개장] --> B[Python 분개장 검증]
-
-B --> C{검증 결과}
-
-C -->|오류 없음| D[ERP 입력 가능]
-
-C -->|오류 발견| E[담당자 검토 필요]
-
-D --> F[ERP용 CSV·JSON 변환]
-
-E --> G[검토 대기열 생성]
-
-F --> H[SQLite 데이터베이스]
-
-G --> H
-
-H --> I[Tableau 대시보드]
+    A[가상 엑셀 분개장] --> B[Python 분개장 검증]
+    B --> C{검증 결과}
+    C -->|오류 없음| D[ERP 입력 가능]
+    C -->|오류 발견| E[담당자 검토 필요]
+    D --> F[ERP용 CSV·JSON 변환]
+    E --> G[검토 대기열 생성]
+    F --> H[SQLite 데이터베이스]
+    G --> H
+    H --> I[Tableau 대시보드]
 ```
 
 ## 4. 주요 기능
@@ -155,63 +146,34 @@ SQLite는 별도의 서버 없이 전체 처리 구조를 재현하기 위해 �
 
 ```text
 accounting_erp_automation/
-
 ├── dashboard/
-
-│ ├── data/
-
-│ └── accounting_erp_dashboard.twbx
-
+│   ├── data/
+│   └── accounting_erp_dashboard.twbx
 ├── data/
-
-│ ├── expected/
-
-│ ├── master/
-
-│ ├── processed/
-
-│ └── raw/
-
+│   ├── expected/
+│   ├── master/
+│   ├── processed/
+│   └── raw/
 ├── docs/
-
-│ └── project_plan.md
-
+│   └── project_plan.md
 ├── notebooks/
-
-│ ├── 01_create_journal_template.ipynb
-
-│ ├── 02_validate_master_data.ipynb
-
-│ ├── 03_create_error_data.ipynb
-
-│ ├── 04_validate_journal.ipynb
-
-│ ├── 05_prepare_erp_upload.ipynb
-
-│ └── 06_generate_bulk_journal.ipynb
-
+│   ├── 01_create_journal_template.ipynb
+│   ├── 02_validate_master_data.ipynb
+│   ├── 03_create_error_data.ipynb
+│   ├── 04_validate_journal.ipynb
+│   ├── 05_prepare_erp_upload.ipynb
+│   └── 06_generate_bulk_journal.ipynb
 ├── outputs/
-
 ├── sql/
-
-│ ├── schema.sql
-
-│ └── analysis_queries.sql
-
+│   ├── schema.sql
+│   └── analysis_queries.sql
 ├── src/
-
-│ ├── journal_validator.py
-
-│ ├── prepare_erp_upload.py
-
-│ ├── load_database.py
-
-│ ├── export_dashboard_data.py
-
-│ └── run_pipeline.py
-
+│   ├── journal_validator.py
+│   ├── prepare_erp_upload.py
+│   ├── load_database.py
+│   ├── export_dashboard_data.py
+│   └── run_pipeline.py
 ├── README.md
-
 └── requirements.txt
 ```
 
@@ -265,89 +227,3 @@ python src/run_pipeline.py
 * 담당자 승인 및 수정 이력 관리
 * ERP API 또는 RPA 입력 연계
 * 이메일·메신저 오류 알림
-
-## 10. 실행 방법
-
-### 패키지 설치
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### 전체 파이프라인 실행
-
-```bash
-python src/run_pipeline.py
-```
-
-전체 실행 과정은 다음 순서로 진행된다.
-
-1. 분개장 오류 검증
-2. ERP 업로드 데이터 변환
-3. SQLite 데이터베이스 적재
-4. Tableau 대시보드용 데이터 생성
-
-실행 완료 후 Tableau에서 데이터 원본을 새로 고치면 최신 결과가 반영된다.
-
-## 11. 주요 출력 파일
-
-| 파일                            | 설명                  |
-| ----------------------------- | ------------------- |
-| `bulk_validation_result.csv`  | 전표별 오류 탐지 결과        |
-| `bulk_transaction_status.csv` | 입력 가능·검토 필요 상태      |
-| `bulk_review_queue.csv`       | 담당자 검토 대기열          |
-| `bulk_erp_upload.csv`         | ERP 업로드용 분개 행       |
-| `bulk_erp_upload.json`        | ERP 연계용 JSON        |
-| `accounting_erp.db`           | SQLite 데이터베이스       |
-| `dashboard/data/*.csv`        | Tableau 시각화용 집계 데이터 |
-
-## 12. 한계와 개선 방향
-
-* 실제 ERP API와 직접 연동하지 않고 업로드 파일 생성까지만 구현
-* 가상 제조기업 데이터와 사전에 정의한 오류를 사용
-* 복합전표와 예외적인 세무처리 규칙은 제한적으로 반영
-* 사용자 권한, 승인 이력 및 수정 이력 관리 미구현
-
-향후에는 다음 기능으로 확장할 수 있다.
-
-* Oracle 또는 MS-SQL 기반 운영 데이터베이스 전환
-* 계정과목 및 거래처 자동완성
-* 적요 기반 계정과목 추천
-* 담당자 승인 및 수정 이력 관리
-* ERP API 또는 RPA 입력 연계
-* 이메일·메신저 오류 알림
-
-1. 분개장 오류 검증
-2. ERP 업로드 데이터 변환
-3. SQLite 데이터베이스 적재
-4. Tableau 대시보드용 데이터 생성
-
-실행 완료 후 Tableau에서 데이터 원본을 새로 고치면 최신 결과가 반영된다.
-
-## 11. 주요 출력 파일
-
-| 파일                            | 설명                  |
-| ----------------------------- | ------------------- |
-| `bulk_validation_result.csv`  | 전표별 오류 탐지 결과        |
-| `bulk_transaction_status.csv` | 입력 가능·검토 필요 상태      |
-| `bulk_review_queue.csv`       | 담당자 검토 대기열          |
-| `bulk_erp_upload.csv`         | ERP 업로드용 분개 행       |
-| `bulk_erp_upload.json`        | ERP 연계용 JSON        |
-| `accounting_erp.db`           | SQLite 데이터베이스       |
-| `dashboard/data/*.csv`        | Tableau 시각화용 집계 데이터 |
-
-## 12. 한계와 개선 방향
-
-* 실제 ERP API와 직접 연동하지 않고 업로드 파일 생성까지만 구현
-* 가상 제조기업 데이터와 사전에 정의한 오류를 사용
-* 복합전표와 예외적인 세무처리 규칙은 제한적으로 반영
-* 사용자 권한, 승인 이력 및 수정 이력 관리 미구현
-
-향후에는 다음 기능으로 확장할 수 있다.
-
-* Oracle 또는 MS-SQL 기반 운영 데이터베이스 전환
-* 계정과목 및 거래처 자동완성
-* 적요 기반 계정과목 추천
-* 담당자 승인 및 수정 이력 관리
-* ERP API 또는 RPA 입력 연계
-* 이메일·메신저 오류 알
