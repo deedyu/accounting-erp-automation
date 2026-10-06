@@ -1,0 +1,10 @@
+{
+  "required_fields": ["voucher_id", "transaction_date", "department_code", "partner_code", "evidence_type", "evidence_no", "description"],
+  "allow_negative": false,
+  "allow_zero_voucher": false,
+  "vat_rate": "0.10",
+  "rounding": "ROUND_HALF_UP",
+  "vat_tolerance_won": 0,
+  "tax_rates": {"일반": "0.10", "과세": "0.10", "면세": "0", "영세율": "0"},
+  "severity_overrides": {"과세유형 확인": "WARNING"}
+}

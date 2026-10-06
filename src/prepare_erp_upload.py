@@ -2,8 +2,16 @@
 
 import json
 import pandas as pd
+from typing import Any
 
-from journal_validator import PROJECT_ROOT
+# 기존 파일 직접 실행에서도 동일한 패키지 모듈을 사용한다.
+if __name__ == "__main__" and not __package__:
+    from _bootstrap import configure_script_imports
+
+    configure_script_imports(__file__)
+
+from src.journal_validator import PROJECT_ROOT
+from src.journal_values import code, money, date_value, pair_columns
 
 
 def load_processed_data():
@@ -84,35 +92,19 @@ def split_transactions(
         transaction_status.loc[
             transaction_status[
                 "processing_status"
-            ] == "검토 필요"
+            ] != "입력 가능"
         ]
         .copy()
         .reset_index(drop=True)
     )
 
     # 상세 오류 유형의 열 이름을 명확하게 변경
-    validation_details = (
-        validation_result[
-            [
-                "voucher_id",
-                "column",
-                "error_type",
-                "detail"
-            ]
-        ]
-        .rename(
-            columns={
-                "error_type": "error_type_detail"
-            }
-        )
-    )
-
-    # 검토 전표에 오류 위치와 상세 사유 연결
-    review_queue = review_journal.merge(
-        validation_details,
-        on="voucher_id",
-        how="left"
-    )
+    key = "_row_id" if "_row_id" in validation_result and "_row_id" in review_journal else "voucher_id"
+    detail_columns = [key, "column", "error_type", "detail"] + [c for c in ["severity", "row_number"] if c in validation_result]
+    validation_details = validation_result[detail_columns].rename(columns={"error_type": "error_type_detail", "row_number": "error_row_number"})
+    review_journal[key] = review_journal[key].astype(object)
+    validation_details[key] = validation_details[key].astype(object)
+    review_queue = review_journal.merge(validation_details, on=key, how="left")
 
     return (
         ready_journal,
@@ -120,245 +112,67 @@ def split_transactions(
     )
 
 
-def convert_to_erp_rows(
-    ready_journal,
-    accounts
-):
-    """가로형 정상 분개를 ERP 업로드용 세로형 구조로 변환한다."""
+ERP_COLUMNS = ["voucher_id", "line_no", "transaction_date", "transaction_type", "department_code", "partner_code",
+               "debit_credit_type", "account_code", "account_name", "debit_amount", "credit_amount", "amount",
+               "evidence_type", "evidence_no", "description", "remarks"]
 
-    # 계정코드로 계정과목명을 찾는 딕셔너리
-    account_name_map = dict(
-        zip(
-            accounts["account_code"].astype(int),
-            accounts["account_name"]
-        )
-    )
 
+def convert_to_erp_rows(ready_journal: pd.DataFrame, accounts: pd.DataFrame) -> pd.DataFrame:
+    """정상 전표의 모든 계정 쌍을 날짜순 ERP 세로 분개로 변환한다."""
+    names = {code(r.account_code): r.account_name for r in accounts.itertuples() if r.is_active == "Y"}
     erp_rows = []
-
-    # 입력 가능한 전표를 한 건씩 변환
     for _, row in ready_journal.iterrows():
+        if row.get("processing_status", "입력 가능") != "입력 가능":
+            continue
         line_no = 1
-
-        debit_pairs = [
-            (
-                row["debit_account_1"],
-                row["debit_amount_1"]
-            ),
-            (
-                row["debit_account_2"],
-                row["debit_amount_2"]
-            )
-        ]
-
-        credit_pairs = [
-            (
-                row["credit_account_1"],
-                row["credit_amount_1"]
-            ),
-            (
-                row["credit_account_2"],
-                row["credit_amount_2"]
-            )
-        ]
-
-        # 차변 계정과 금액을 개별 행으로 추가
-        for account_value, amount_value in debit_pairs:
-            if (
-                pd.isna(account_value)
-                or pd.isna(amount_value)
-                or amount_value == 0
-            ):
-                continue
-
-            account_code = int(account_value)
-
-            erp_rows.append(
-                {
-                    "voucher_id": row["voucher_id"],
-                    "line_no": line_no,
-                    "transaction_date": row[
-                        "transaction_date"
-                    ],
-                    "transaction_type": row[
-                        "transaction_type"
-                    ],
-                    "department_code": row[
-                        "department_code"
-                    ],
-                    "partner_code": row[
-                        "partner_code"
-                    ],
-                    "debit_credit_type": "차변",
-                    "account_code": account_code,
-                    "account_name": (
-                        account_name_map.get(
-                            account_code,
-                            "알 수 없음"
-                        )
-                    ),
-                    "amount": int(amount_value),
-                    "evidence_type": row[
-                        "evidence_type"
-                    ],
-                    "evidence_no": row[
-                        "evidence_no"
-                    ],
-                    "description": row[
-                        "description"
-                    ],
-                    "remarks": row["remarks"]
-                }
-            )
-
-            line_no += 1
-
-        # 대변 계정과 금액을 개별 행으로 추가
-        for account_value, amount_value in credit_pairs:
-            if (
-                pd.isna(account_value)
-                or pd.isna(amount_value)
-                or amount_value == 0
-            ):
-                continue
-
-            account_code = int(account_value)
-
-            erp_rows.append(
-                {
-                    "voucher_id": row["voucher_id"],
-                    "line_no": line_no,
-                    "transaction_date": row[
-                        "transaction_date"
-                    ],
-                    "transaction_type": row[
-                        "transaction_type"
-                    ],
-                    "department_code": row[
-                        "department_code"
-                    ],
-                    "partner_code": row[
-                        "partner_code"
-                    ],
-                    "debit_credit_type": "대변",
-                    "account_code": account_code,
-                    "account_name": (
-                        account_name_map.get(
-                            account_code,
-                            "알 수 없음"
-                        )
-                    ),
-                    "amount": int(amount_value),
-                    "evidence_type": row[
-                        "evidence_type"
-                    ],
-                    "evidence_no": row[
-                        "evidence_no"
-                    ],
-                    "description": row[
-                        "description"
-                    ],
-                    "remarks": row["remarks"]
-                }
-            )
-
-            line_no += 1
-
-    return pd.DataFrame(erp_rows)
+        for side, label in [("debit", "차변"), ("credit", "대변")]:
+            for account_column, amount_column in pair_columns(ready_journal.columns, side):
+                amount = money(row.get(amount_column))
+                account = code(row.get(account_column))
+                if amount in (None, 0):
+                    continue
+                if account not in names:
+                    raise ValueError(f"ERP 변환 불가: 계정코드 {account}를 확인해 주세요.")
+                record = {c: row.get(c) for c in ERP_COLUMNS}
+                record.update(voucher_id=code(row.get("voucher_id")), line_no=line_no,
+                              transaction_date=date_value(row.get("transaction_date")), account_code=account,
+                              account_name=names[account], amount=amount, debit_credit_type=label,
+                              debit_amount=amount if side == "debit" else 0, credit_amount=amount if side == "credit" else 0)
+                erp_rows.append(record)
+                line_no += 1
+    return pd.DataFrame(erp_rows, columns=ERP_COLUMNS).sort_values(["transaction_date", "voucher_id", "line_no"], kind="stable").reset_index(drop=True)
 
 
-def validate_erp_rows(erp_upload):
-    """ERP 변환 후 차변·대변과 데이터 구조를 재검증한다."""
-
+def validate_erp_rows(erp_upload: pd.DataFrame, accounts: pd.DataFrame | None = None) -> tuple[pd.DataFrame, dict[str, int]]:
+    """ERP 전표별 균형·순번·계정과 금액을 재검증한다."""
     if erp_upload.empty:
-        raise ValueError(
-            "ERP 입력 가능 데이터가 없음"
-        )
-
-    # 전표별 차변·대변 금액 집계
-    balance_check = (
-        erp_upload
-        .pivot_table(
-            index="voucher_id",
-            columns="debit_credit_type",
-            values="amount",
-            aggfunc="sum",
-            fill_value=0
-        )
-        .reset_index()
-    )
-
-    balance_check.columns.name = None
-
-    # 차변과 대변 차이 계산
-    balance_check["difference"] = (
-        balance_check["차변"]
-        - balance_check["대변"]
-    )
-
-    balance_check["is_balanced"] = (
-        balance_check["difference"] == 0
-    )
-
-    # 전표 내 순번 중복 검사
-    duplicate_line_count = (
-        erp_upload
-        .duplicated(
-            subset=[
-                "voucher_id",
-                "line_no"
-            ]
-        )
-        .sum()
-    )
-
-    # 계정과목 연결 실패 검사
-    unknown_account_count = (
-        erp_upload["account_name"]
-        == "알 수 없음"
-    ).sum()
-
-    # 검증 실패 전표
-    unbalanced_count = (
-        balance_check["is_balanced"]
-        == False
-    ).sum()
-
-    # 잘못된 ERP 데이터가 있으면 저장 중단
-    if unbalanced_count > 0:
-        raise ValueError(
-            f"차변·대변 불일치 전표: "
-            f"{unbalanced_count}건"
-        )
-
-    if duplicate_line_count > 0:
-        raise ValueError(
-            f"전표 내 중복 순번: "
-            f"{duplicate_line_count}건"
-        )
-
-    if unknown_account_count > 0:
-        raise ValueError(
-            f"알 수 없는 계정과목: "
-            f"{unknown_account_count}건"
-        )
-
-    validation_summary = {
-        "unbalanced_count": int(
-            unbalanced_count
-        ),
-        "duplicate_line_count": int(
-            duplicate_line_count
-        ),
-        "unknown_account_count": int(
-            unknown_account_count
-        )
-    }
-
-    return (
-        balance_check,
-        validation_summary
-    )
+        return pd.DataFrame(columns=["voucher_id", "차변", "대변", "difference", "is_balanced"]), {"unbalanced_count": 0, "duplicate_line_count": 0, "unknown_account_count": 0}
+    if erp_upload["voucher_id"].apply(code).eq("").any():
+        raise ValueError("ERP 전표번호가 비어 있습니다.")
+    if not erp_upload["debit_credit_type"].isin(["차변", "대변"]).all():
+        raise ValueError("ERP 차대 구분이 올바르지 않습니다.")
+    values = erp_upload["amount"].apply(money)
+    if values.isna().any() or values.eq(0).any():
+        raise ValueError("ERP 금액이 비어 있거나 0원입니다.")
+    frame = erp_upload.copy()
+    frame["amount"] = values
+    for side, label in [("debit_amount", "차변"), ("credit_amount", "대변")]:
+        if side in frame:
+            expected = values.where(frame["debit_credit_type"].eq(label), 0)
+            if not frame[side].apply(money).eq(expected).all():
+                raise ValueError("ERP 차변·대변 금액과 분개 금액이 일치하지 않습니다.")
+    balance = frame.pivot_table(index="voucher_id", columns="debit_credit_type", values="amount", aggfunc="sum", fill_value=0).reindex(columns=["차변", "대변"], fill_value=0).reset_index()
+    balance.columns.name = None
+    balance["difference"] = balance["차변"] - balance["대변"]
+    balance["is_balanced"] = balance["difference"].eq(0)
+    duplicates = int(frame.duplicated(["voucher_id", "line_no"]).sum())
+    unknown = int(frame.account_name.eq("알 수 없음").sum())
+    if accounts is not None:
+        active = set(accounts.loc[accounts.is_active.eq("Y"), "account_code"].apply(code))
+        unknown = int((~frame.account_code.apply(code).isin(active)).sum())
+    if not balance.is_balanced.all() or duplicates or unknown:
+        raise ValueError(f"ERP 재검증 실패: 차대 불일치 {int((~balance.is_balanced).sum())}건, 중복 순번 {duplicates}건, 계정 오류 {unknown}건")
+    return balance, {"unbalanced_count": 0, "duplicate_line_count": duplicates, "unknown_account_count": unknown}
 
 
 def build_erp_json(erp_upload):
@@ -370,7 +184,7 @@ def build_erp_json(erp_upload):
     for voucher_id, voucher_group in (
         erp_upload.groupby(
             "voucher_id",
-            sort=True
+            sort=False
         )
     ):
         first_row = voucher_group.iloc[0]
@@ -387,9 +201,7 @@ def build_erp_json(erp_upload):
                     "debit_credit_type": line[
                         "debit_credit_type"
                     ],
-                    "account_code": int(
-                        line["account_code"]
-                    ),
+                    "account_code": code(line["account_code"]),
                     "account_name": line[
                         "account_name"
                     ],
@@ -429,7 +241,7 @@ def build_erp_json(erp_upload):
                 "description": first_row[
                     "description"
                 ],
-                "remarks": first_row["remarks"],
+                "remarks": None if pd.isna(first_row["remarks"]) else first_row["remarks"],
                 "journal_lines": journal_lines
             }
         )

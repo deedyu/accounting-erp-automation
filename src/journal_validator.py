@@ -2,6 +2,15 @@
 
 import pandas as pd
 from pathlib import Path
+from typing import Any
+from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_EVEN, ROUND_DOWN
+import json
+
+if __name__ == "__main__" and not __package__:
+    from _bootstrap import configure_script_imports
+    configure_script_imports(__file__)
+
+from src.journal_values import code, money, date_value, pair_columns
 
 
 # 현재 파일의 상위 프로젝트 폴더
@@ -129,7 +138,7 @@ def build_validation_standards(
             "account_code"
         ]
         .dropna()
-        .astype(int)
+        .apply(code)
     )
 
     # 사용 중인 거래처 코드
@@ -139,7 +148,7 @@ def build_validation_standards(
             "partner_code"
         ]
         .dropna()
-        .astype(str)
+        .apply(code)
     )
 
     # 사용 중인 부서 코드
@@ -149,10 +158,11 @@ def build_validation_standards(
             "department_code"
         ]
         .dropna()
-        .astype(str)
+        .apply(code)
     )
 
     return {
+        "master_data": {"account": accounts, "partner": vendors, "department": departments},
         "valid_account_codes": valid_account_codes,
         "valid_partner_codes": valid_partner_codes,
         "valid_department_codes": valid_department_codes,
@@ -161,357 +171,128 @@ def build_validation_standards(
     }
 
 
-def validate_journal(journal, standards):
-    """
-    분개장의 필수값, 마스터 코드, 회계금액,
-    부가세, 증빙번호 및 회계기간을 검사한다.
-    """
+ERROR_COLUMNS = ["voucher_id", "row_number", "column", "error_type", "severity", "detail", "_row_id"]
 
-    valid_account_codes = standards[
-        "valid_account_codes"
-    ]
 
-    valid_partner_codes = standards[
-        "valid_partner_codes"
-    ]
+def load_validation_rules(path: str | Path | None = None) -> dict[str, Any]:
+    """검증 정책을 읽고 심각도·세율·반올림 설정을 확인한다."""
+    rules = json.loads(Path(path or PROJECT_ROOT / "config/validation_rules.json").read_text())
+    if any(v not in {"ERROR", "WARNING", "INFO"} for v in rules.get("severity_overrides", {}).values()):
+        raise ValueError("검증 심각도는 ERROR, WARNING, INFO만 허용합니다.")
+    if rules.get("rounding") not in {"ROUND_HALF_UP", "ROUND_HALF_EVEN", "ROUND_DOWN"}:
+        raise ValueError("지원하지 않는 세액 반올림 방식입니다.")
+    return rules
 
-    valid_department_codes = standards[
-        "valid_department_codes"
-    ]
 
-    period_start = standards["period_start"]
-    period_end = standards["period_end"]
+def identified_journal(journal: pd.DataFrame) -> pd.DataFrame:
+    """전표번호 누락에도 오류를 연결할 수 있도록 내부 행 식별자를 보완한다."""
+    result = journal.copy()
+    if "_row_id" not in result:
+        result["_row_id"] = [f"r{i + 2}" for i in range(len(result))]
+    if "row_number" not in result:
+        result["row_number"] = list(range(2, len(result) + 2))
+    return result
 
-    detected_errors = []
 
-    # 반드시 값이 입력되어야 하는 열
-    required_columns = [
-        "voucher_id",
-        "transaction_date",
-        "department_code",
-        "partner_code",
-        "evidence_type",
-        "evidence_no",
-        "description",
-        "debit_account_1",
-        "debit_amount_1",
-        "credit_account_1",
-        "credit_amount_1",
-        "supply_amount",
-        "vat_amount",
-        "total_amount"
-    ]
-
-    # 계정과목 코드가 들어 있는 열
-    account_columns = [
-        "debit_account_1",
-        "debit_account_2",
-        "credit_account_1",
-        "credit_account_2"
-    ]
-
-    # 비어 있지 않은 증빙번호만 중복 검사
-    valid_evidence_mask = journal[
-        "evidence_no"
-    ].apply(
-        lambda value: not is_missing(value)
-    )
-
-    # 같은 증빙번호의 두 번째 등장부터 중복 처리
-    duplicate_evidence_mask = (
-        valid_evidence_mask
-        & journal["evidence_no"].duplicated(
-            keep="first"
-        )
-    )
-
-    # 분개장 거래를 한 행씩 검사
-    for row_index, row in journal.iterrows():
-        voucher_id = row["voucher_id"]
-
-        # 필수값 누락 검사
-        for column in required_columns:
-            if is_missing(row[column]):
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column=column,
-                    error_type="필수값 누락",
-                    detail=f"{column}: 값 누락"
-                )
-
-        # 거래처 코드 검사
-        if not is_missing(row["partner_code"]):
-            partner_code = str(
-                row["partner_code"]
-            )
-
-            if (
-                partner_code
-                not in valid_partner_codes
-            ):
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column="partner_code",
-                    error_type="존재하지 않는 거래처",
-                    detail=(
-                        f"{partner_code}: "
-                        "거래처 기준표에 없음"
-                    )
-                )
-
-        # 부서 코드 검사
-        if not is_missing(row["department_code"]):
-            department_code = str(
-                row["department_code"]
-            )
-
-            if (
-                department_code
-                not in valid_department_codes
-            ):
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column="department_code",
-                    error_type="존재하지 않는 부서",
-                    detail=(
-                        f"{department_code}: "
-                        "부서 기준표에 없음"
-                    )
-                )
-
-        # 차변·대변 계정과목 코드 검사
-        for column in account_columns:
-            account_value = row[column]
-
-            # 사용하지 않는 두 번째 계정은 검사 제외
-            if is_missing(account_value):
-                continue
-
-            numeric_account = pd.to_numeric(
-                account_value,
-                errors="coerce"
-            )
-
-            if (
-                pd.isna(numeric_account)
-                or int(numeric_account)
-                not in valid_account_codes
-            ):
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column=column,
-                    error_type="존재하지 않는 계정과목",
-                    detail=(
-                        f"{account_value}: "
-                        "계정과목 기준표에 없음"
-                    )
-                )
-
-        # 금액 열을 숫자로 변환
-        debit_amount_1 = pd.to_numeric(
-            row["debit_amount_1"],
-            errors="coerce"
-        )
-
-        debit_amount_2 = pd.to_numeric(
-            row["debit_amount_2"],
-            errors="coerce"
-        )
-
-        credit_amount_1 = pd.to_numeric(
-            row["credit_amount_1"],
-            errors="coerce"
-        )
-
-        credit_amount_2 = pd.to_numeric(
-            row["credit_amount_2"],
-            errors="coerce"
-        )
-
-        total_amount = pd.to_numeric(
-            row["total_amount"],
-            errors="coerce"
-        )
-
-        supply_amount = pd.to_numeric(
-            row["supply_amount"],
-            errors="coerce"
-        )
-
-        vat_amount = pd.to_numeric(
-            row["vat_amount"],
-            errors="coerce"
-        )
-
-        # 사용하지 않는 금액 열은 0으로 처리
-        debit_amount_1 = (
-            0
-            if pd.isna(debit_amount_1)
-            else debit_amount_1
-        )
-
-        debit_amount_2 = (
-            0
-            if pd.isna(debit_amount_2)
-            else debit_amount_2
-        )
-
-        credit_amount_1 = (
-            0
-            if pd.isna(credit_amount_1)
-            else credit_amount_1
-        )
-
-        credit_amount_2 = (
-            0
-            if pd.isna(credit_amount_2)
-            else credit_amount_2
-        )
-
-        # 차변과 대변 합계 계산
-        debit_total = (
-            debit_amount_1
-            + debit_amount_2
-        )
-
-        credit_total = (
-            credit_amount_1
-            + credit_amount_2
-        )
-
-        # 차변·대변 불일치 검사
-        if debit_total != credit_total:
-            add_error(
-                error_list=detected_errors,
-                voucher_id=voucher_id,
-                column="debit_amount_1",
-                error_type="차변·대변 불일치",
-                detail=(
-                    f"차변 {debit_total:,.0f}원 / "
-                    f"대변 {credit_total:,.0f}원"
-                )
-            )
-
-        # 차변·대변이 같을 때 총금액 검사
-        elif (
-            not pd.isna(total_amount)
-            and total_amount != debit_total
-        ):
-            add_error(
-                error_list=detected_errors,
-                voucher_id=voucher_id,
-                column="total_amount",
-                error_type="전표 합계 불일치",
-                detail=(
-                    f"입력 {total_amount:,.0f}원 / "
-                    f"분개 {debit_total:,.0f}원"
-                )
-            )
-
-        # 일반 과세 거래의 부가세 검사
-        if (
-            not pd.isna(supply_amount)
-            and supply_amount > 0
-            and not pd.isna(vat_amount)
-        ):
-            expected_vat = round(
-                supply_amount * 0.1
-            )
-
-            if vat_amount != expected_vat:
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column="vat_amount",
-                    error_type="부가세 계산 오류",
-                    detail=(
-                        f"입력 {vat_amount:,.0f}원 / "
-                        f"예상 {expected_vat:,.0f}원"
-                    )
-                )
-
-        # 중복 증빙번호 검사
-        if duplicate_evidence_mask.loc[row_index]:
-            add_error(
-                error_list=detected_errors,
-                voucher_id=voucher_id,
-                column="evidence_no",
-                error_type="증빙번호 중복",
-                detail=(
-                    f"{row['evidence_no']}: "
-                    "중복 증빙"
-                )
-            )
-
-        # 거래일자를 날짜로 변환
-        transaction_date = pd.to_datetime(
-            row["transaction_date"],
-            errors="coerce"
-        )
-
-        # 날짜 형식 오류 검사
-        if (
-            not is_missing(row["transaction_date"])
-            and pd.isna(transaction_date)
-        ):
-            add_error(
-                error_list=detected_errors,
-                voucher_id=voucher_id,
-                column="transaction_date",
-                error_type="날짜 형식 오류",
-                detail=(
-                    f"{row['transaction_date']}: "
-                    "날짜 변환 불가"
-                )
-            )
-
-        # 회계기간 이탈 검사
-        elif not pd.isna(transaction_date):
-            if not (
-                period_start
-                <= transaction_date
-                < period_end
-            ):
-                add_error(
-                    error_list=detected_errors,
-                    voucher_id=voucher_id,
-                    column="transaction_date",
-                    error_type="회계기간 이탈",
-                    detail=(
-                        f"{transaction_date.date()}: "
-                        "회계기간 아님"
-                    )
-                )
-
-    # 오류가 없어도 동일한 열 구조로 생성
-    validation_result = pd.DataFrame(
-        detected_errors,
-        columns=[
-            "voucher_id",
-            "column",
-            "error_type",
-            "detail"
-        ]
-    )
-
-    # 전표번호와 오류 유형 순서로 정렬
-    if not validation_result.empty:
-        validation_result = (
-            validation_result
-            .sort_values(
-                by=[
-                    "voucher_id",
-                    "error_type"
-                ]
-            )
-            .reset_index(drop=True)
-        )
-
-    return validation_result
+def validate_journal(journal: pd.DataFrame, standards: dict[str, Any]) -> pd.DataFrame:
+    """원본 행과 연결하여 필수값·기준정보·금액·전표·증빙·기간을 검사한다."""
+    rules = standards.get("rules") or load_validation_rules()
+    frame = identified_journal(journal)
+    detected = list(journal.attrs.get("normalization_errors", []))
+    masters = {}
+    for kind, master in standards.get("master_data", {}).items():
+        key = f"{kind}_code"
+        masters[kind] = {code(r[key]): str(r["is_active"]).strip().upper() == "Y" for _, r in master.iterrows()}
+    fallback = {"account": "valid_account_codes", "partner": "valid_partner_codes", "department": "valid_department_codes"}
+    for kind, field in fallback.items():
+        if kind not in masters:
+            masters[kind] = {code(v): True for v in standards[field]}
+    voucher_keys = frame["voucher_id"].apply(code)
+    duplicated_vouchers = voucher_keys.ne("") & voucher_keys.duplicated(keep=False)
+    evidence_groups = frame.assign(_evidence=frame["evidence_no"].apply(code)).groupby("_evidence")["_row_id"].nunique()
+    duplicated_evidence = set(evidence_groups[evidence_groups > 1].index) - {""}
+    for index, row in frame.iterrows():
+        def error(column: str, kind: str, detail: str, number: int | None = None) -> None:
+            """원본 위치와 설정된 심각도로 오류를 추가한다."""
+            detected.append({"voucher_id": row.get("voucher_id"), "row_number": int(number or row["row_number"]),
+                             "column": column, "error_type": kind, "severity": rules.get("severity_overrides", {}).get(kind, "ERROR"),
+                             "detail": detail, "_row_id": row["_row_id"]})
+        for column in rules["required_fields"]:
+            if is_missing(row.get(column)):
+                error(column, "필수값 누락", f"{column}: 값이 없습니다.")
+        if duplicated_vouchers.loc[index] and row.get("_layout", "wide") != "vertical":
+            error("voucher_id", "중복 전표번호", "가로형 분개장에 같은 전표번호가 여러 번 있습니다.")
+        for kind, label in [("department", "부서"), ("partner", "거래처")]:
+            value = code(row.get(f"{kind}_code"))
+            if value and value not in masters[kind]:
+                error(f"{kind}_code", f"존재하지 않는 {label}", f"{value}: {label} 기준정보에 없습니다.")
+            elif value and not masters[kind][value]:
+                error(f"{kind}_code", f"비활성 {label}", f"{value}: 사용 중지된 {label}입니다.")
+        totals = {}
+        for side in ["debit", "credit"]:
+            total, invalid = 0, False
+            for account_col, amount_col in pair_columns(frame.columns, side):
+                account = code(row.get(account_col))
+                raw_amount = row.get(amount_col)
+                number = row.get(f"_{side}_row_{account_col.rsplit('_', 1)[1]}", row["row_number"])
+                number = int(row["row_number"] if pd.isna(number) else number)
+                if account and account not in masters["account"]:
+                    error(account_col, "존재하지 않는 계정과목", f"{account}: 계정 기준정보에 없습니다.", number)
+                elif account and not masters["account"][account]:
+                    error(account_col, "비활성 계정과목", f"{account}: 사용 중지된 계정입니다.", number)
+                try:
+                    amount = money(raw_amount)
+                except ValueError as exc:
+                    error(amount_col, "금액 형식 오류", f"{raw_amount}: {exc}", number)
+                    invalid = True
+                    continue
+                if account and amount is None:
+                    error(amount_col, "계정·금액 쌍 누락", "계정코드는 있지만 금액이 없습니다.", number)
+                if not account and amount not in (None, 0):
+                    error(account_col, "계정·금액 쌍 누락", "금액은 있지만 계정코드가 없습니다.", number)
+                if amount is not None:
+                    if amount < 0 and not rules["allow_negative"]:
+                        error(amount_col, "허용되지 않은 금액", "음수 금액은 허용하지 않습니다.", number)
+                    total += amount
+            totals[side] = None if invalid else total
+        amounts = {}
+        for column in ["supply_amount", "vat_amount", "total_amount"]:
+            try:
+                amounts[column] = money(row.get(column))
+                if amounts[column] is not None and amounts[column] < 0 and not rules["allow_negative"]:
+                    error(column, "허용되지 않은 금액", "음수 금액은 허용하지 않습니다.")
+            except ValueError as exc:
+                amounts[column] = None
+                error(column, "금액 형식 오류", f"{row.get(column)}: {exc}")
+        debit, credit = totals["debit"], totals["credit"]
+        if debit is not None and credit is not None:
+            if debit != credit:
+                error("debit_amount_1", "차변·대변 불일치", f"차변 {debit:,}원 / 대변 {credit:,}원")
+            if debit == credit == 0 and not rules["allow_zero_voucher"]:
+                error("debit_amount_1", "허용되지 않은 금액", "분개 금액이 모두 0원이거나 비어 있습니다.")
+            if amounts["total_amount"] is not None and amounts["total_amount"] != debit:
+                error("total_amount", "전표 합계 불일치", f"입력 {amounts['total_amount']:,}원 / 차변 {debit:,}원")
+        supply, vat, total = (amounts[c] for c in ["supply_amount", "vat_amount", "total_amount"])
+        if supply is not None and vat is not None and (supply > 0 or vat > 0):
+            if total is not None and supply + vat != total:
+                error("total_amount", "공급가액·부가세·총액 불일치", f"공급가액+부가세 {supply + vat:,}원 / 총액 {total:,}원")
+            tax_type = code(row.get("tax_type"))
+            rate = rules["tax_rates"].get(tax_type, rules["vat_rate"] if not tax_type else None)
+            if rate is None:
+                error("tax_type", "과세유형 확인", f"과세유형 '{tax_type}'의 세율을 설정해 주세요.")
+            else:
+                rounding = {"ROUND_HALF_UP": ROUND_HALF_UP, "ROUND_HALF_EVEN": ROUND_HALF_EVEN, "ROUND_DOWN": ROUND_DOWN}[rules["rounding"]]
+                expected = int((Decimal(supply) * Decimal(rate)).quantize(Decimal("1"), rounding=rounding))
+                if abs(vat - expected) > rules["vat_tolerance_won"]:
+                    error("vat_amount", "부가세 계산 오류", f"입력 {vat:,}원 / 예상 {expected:,}원")
+        if code(row.get("evidence_no")) in duplicated_evidence:
+            error("evidence_no", "증빙번호 중복", "서로 다른 전표가 같은 증빙번호를 사용합니다.")
+        date = date_value(row.get("transaction_date"))
+        if not is_missing(row.get("transaction_date")) and pd.isna(date):
+            error("transaction_date", "날짜 형식 오류", f"{row.get('transaction_date')}: 날짜로 변환할 수 없습니다.")
+        elif not pd.isna(date) and not standards["period_start"] <= date < standards["period_end"]:
+            error("transaction_date", "회계기간 이탈", f"{date.date()}: 선택한 회계기간 밖입니다.")
+    return pd.DataFrame(detected, columns=ERROR_COLUMNS).sort_values(["row_number", "error_type"], kind="stable").reset_index(drop=True)
 
 
 def compare_with_expected(
@@ -608,63 +389,26 @@ def compare_with_expected(
     return comparison, metrics
 
 
-def classify_transactions(
-    journal,
-    validation_result
-):
-    """오류 유무에 따라 전표의 처리 상태를 분류한다."""
-
-    # 전표별 오류 개수와 오류 유형 집계
-    error_summary = (
-        validation_result
-        .groupby("voucher_id")
-        .agg(
-            error_count=(
-                "error_type",
-                "count"
-            ),
-            error_types=(
-                "error_type",
-                lambda values: ", ".join(
-                    sorted(set(values))
-                )
-            )
-        )
-        .reset_index()
-    )
-
-    # 원본 분개장에 오류 집계 결과 연결
-    classified_journal = journal.merge(
-        error_summary,
-        on="voucher_id",
-        how="left"
-    )
-
-    # 오류가 없는 전표의 결측값 처리
-    classified_journal["error_count"] = (
-        classified_journal["error_count"]
-        .fillna(0)
-        .astype(int)
-    )
-
-    classified_journal["error_types"] = (
-        classified_journal["error_types"]
-        .fillna("없음")
-    )
-
-    # 오류 개수에 따라 처리 상태 결정
-    classified_journal["processing_status"] = (
-        classified_journal["error_count"]
-        .apply(
-            lambda count: (
-                "입력 가능"
-                if count == 0
-                else "검토 필요"
-            )
-        )
-    )
-
-    return classified_journal
+def classify_transactions(journal: pd.DataFrame, validation_result: pd.DataFrame) -> pd.DataFrame:
+    """내부 행 식별자로 오류를 연결하고 세 상태와 기존 호환 상태를 만든다."""
+    frame = identified_journal(journal)
+    errors = validation_result.copy()
+    if "severity" not in errors:
+        errors["severity"] = "ERROR"
+    key = "_row_id" if "_row_id" in errors else "voucher_id"
+    groups = {k: group for k, group in errors.groupby(key, dropna=False)}
+    counts, kinds, statuses = [], [], []
+    for _, row in frame.iterrows():
+        group = groups.get(row[key], errors.iloc[:0])
+        severity = set(group["severity"])
+        counts.append(len(group))
+        kinds.append(", ".join(sorted(set(group["error_type"]))) or "없음")
+        statuses.append("입력 불가" if "ERROR" in severity else "검토 필요" if "WARNING" in severity else "입력 가능")
+    frame["error_count"], frame["error_types"], frame["processing_status"] = counts, kinds, statuses
+    frame["legacy_processing_status"] = ["입력 가능" if s == "입력 가능" else "검토 필요" for s in statuses]
+    frame["_sort_date"] = frame["transaction_date"].apply(date_value)
+    frame["_sort_voucher"] = frame["voucher_id"].apply(code)
+    return frame.sort_values(["_sort_date", "_sort_voucher", "row_number"], kind="stable", na_position="last").drop(columns=["_sort_date", "_sort_voucher"]).reset_index(drop=True)
 
 
 def save_results(

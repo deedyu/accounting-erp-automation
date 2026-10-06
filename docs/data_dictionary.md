@@ -1,3 +1,42 @@
+# 현재 데이터 사전
+
+## 표준 전표
+가로형 기본 20열(voucher_id, transaction_date, transaction_type, department_code, partner_code, evidence_type, evidence_no, description, debit_account_1, debit_amount_1, debit_account_2, debit_amount_2, credit_account_1, credit_amount_1, credit_account_2, credit_amount_2, supply_amount, vat_amount, total_amount, remarks)을 유지합니다. 계정 쌍은 `_3`, `_4` 등으로 확장 가능합니다.
+
+- `_row_id`: 실행 안에서 오류를 연결하는 내부 식별자. 전표번호가 없더라도 존재합니다.
+- `row_number`: 원본 Excel 행 번호(1부터).
+- `_source_rows`: 세로형 전표의 원본 행 번호 목록.
+- `_layout`: wide 또는 vertical.
+- `tax_type`: 일반/과세/면세/영세율 등 설정된 과세 유형.
+- `processing_status`: 입력 가능/검토 필요/입력 불가.
+- `legacy_processing_status`: 과거 두 상태 호환용.
+- `error_count`, `error_types`: 오류 개수와 유형.
+
+세로형 입력의 account_code, account_name, line_no, debit_amount, credit_amount(또는 debit_credit_type, amount)를 지원합니다. 계정명은 ERP 출력 시 마스터에서 조회합니다. 코드 문자열의 선행 0을 보존하고 금액은 정수 원 단위입니다. 변환 실패 원문은 오류 기록을 위해 유지합니다.
+
+## 검증 오류
+voucher_id, row_number, column, error_type, severity(ERROR/WARNING/INFO), detail, _row_id.
+
+## 매핑
+source_column, standard_column, matched_alias, confidence(0~100), status(자동 확정/확인 필요/미매핑).
+
+## ERP
+voucher_id, line_no, transaction_date, transaction_type, department_code, partner_code, debit_credit_type, account_code, account_name, debit_amount, credit_amount, amount, evidence_type, evidence_no, description, remarks.
+
+## 일계표
+transaction_date, transaction_count, debit_total, credit_total, difference, unparsed_amount_count, balance_status.
+최종 합계에는 undated_transaction_count(날짜 해석 불가 전표 수)를 추가합니다. 정상 합계와 전체 합계는 별도 데이터입니다.
+
+## 마스터
+accounts.csv: account_code, account_name, account_category, normal_balance, vat_type, is_active.
+vendors.csv: partner_code, partner_name, partner_type, default_account_code, settlement_account_code, payment_method, vat_applicable, is_active.
+departments.csv: department_code, department_name, cost_center, main_role, is_active.
+활성값은 Y/N으로 관리합니다.
+
+
+<details>
+<summary>초기 구현 기록 — 아래 내용은 구버전의 당시 상태입니다</summary>
+
 # 데이터 사전
 
 ## 1. 문서 목적
@@ -494,3 +533,5 @@ Tableau 대시보드의 검토 대기열 상세 표에 사용하는 데이터이
 - 전표 수정 및 승인 이력 관리
 - 데이터베이스 접속 기록과 감사 로그 관리
 - ERP 업로드 전 담당자 최종 승인
+
+</details>

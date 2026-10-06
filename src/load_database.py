@@ -3,7 +3,13 @@
 import sqlite3
 import pandas as pd
 
-from journal_validator import PROJECT_ROOT
+# 기존 파일 직접 실행에서도 동일한 패키지 모듈을 사용한다.
+if __name__ == "__main__" and not __package__:
+    from _bootstrap import configure_script_imports
+
+    configure_script_imports(__file__)
+
+from src.journal_validator import PROJECT_ROOT
 
 
 # 데이터베이스와 SQL 설계 파일 경로
@@ -383,7 +389,7 @@ def verify_database(connection):
     )
 
 
-def main():
+def main(*, replace_existing: bool = False) -> None:
     """SQLite 데이터베이스 생성과 적재를 실행한다."""
 
     print("데이터베이스 적재 시작")
@@ -403,9 +409,11 @@ def main():
     )
 
     # SQLite 데이터베이스 연결
-    connection = sqlite3.connect(
-        DATABASE_PATH
-    )
+    database_path = DATABASE_PATH
+    if database_path.exists() and not replace_existing:
+        from uuid import uuid4
+        database_path = database_path.with_name(f"{database_path.stem}_{uuid4().hex}.db")
+    connection = sqlite3.connect(database_path)
 
     try:
         # 외래키 검사를 현재 연결에서 활성화
@@ -418,7 +426,8 @@ def main():
 
         # 여러 작업을 하나의 트랜잭션으로 처리
         with connection:
-            clear_existing_data(connection)
+            if replace_existing:
+                clear_existing_data(connection)
 
             insert_database_data(
                 connection,

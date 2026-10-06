@@ -10,3 +10,15 @@ venv/
 *.twbr
 
 .vscode/
+.pytest_cache/
+work/
+
+# 실행 자료와 사용자 설정
+.env.*
+*.db
+*.db-*
+*.sqlite*
+data/uploads/
+data/processed/
+data/standardized/
+config/mapping_profiles/

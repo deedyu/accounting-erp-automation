@@ -1,0 +1,200 @@
+{
+  "voucher_id": [
+    "voucher_id",
+    "전표번호",
+    "전표 번호",
+    "전표ID",
+    "분개번호",
+    "분개 번호",
+    "journal_id"
+  ],
+  "transaction_date": [
+    "transaction_date",
+    "거래일자",
+    "거래 일자",
+    "전표일자",
+    "전표 일자",
+    "작성일자",
+    "회계일자",
+    "date"
+  ],
+  "transaction_type": [
+    "transaction_type",
+    "거래유형",
+    "거래 유형",
+    "전표유형",
+    "전표 유형",
+    "거래구분"
+  ],
+  "department_code": [
+    "department_code",
+    "부서코드",
+    "부서 코드",
+    "부서",
+    "귀속부서",
+    "cost_center"
+  ],
+  "partner_code": [
+    "partner_code",
+    "거래처코드",
+    "거래처 코드",
+    "거래처",
+    "업체코드",
+    "공급자코드",
+    "vendor_code"
+  ],
+  "evidence_type": [
+    "evidence_type",
+    "증빙유형",
+    "증빙 유형",
+    "증빙구분",
+    "증빙종류",
+    "evidence"
+  ],
+  "evidence_no": [
+    "evidence_no",
+    "증빙번호",
+    "증빙 번호",
+    "세금계산서번호",
+    "카드승인번호",
+    "receipt_no"
+  ],
+  "description": [
+    "description",
+    "적요",
+    "거래내용",
+    "거래 내용",
+    "내용",
+    "description_text"
+  ],
+  "debit_account_1": [
+    "debit_account_1",
+    "차변계정1",
+    "차변 계정1",
+    "차변계정코드1",
+    "차변 계정코드 1",
+    "debit_account",
+    "차변계정",
+    "차변계정코드"
+  ],
+  "debit_amount_1": [
+    "debit_amount_1",
+    "차변금액1",
+    "차변 금액1",
+    "차변액1",
+    "차변금액",
+    "debit_amount",
+    "차변액"
+  ],
+  "debit_account_2": [
+    "debit_account_2",
+    "차변계정2",
+    "차변 계정2",
+    "차변계정코드2",
+    "차변 계정코드 2"
+  ],
+  "debit_amount_2": [
+    "debit_amount_2",
+    "차변금액2",
+    "차변 금액2",
+    "차변액2"
+  ],
+  "credit_account_1": [
+    "credit_account_1",
+    "대변계정1",
+    "대변 계정1",
+    "대변계정코드1",
+    "대변 계정코드 1",
+    "credit_account",
+    "대변계정",
+    "대변계정코드"
+  ],
+  "credit_amount_1": [
+    "credit_amount_1",
+    "대변금액1",
+    "대변 금액1",
+    "대변액1",
+    "대변금액",
+    "credit_amount",
+    "대변액"
+  ],
+  "credit_account_2": [
+    "credit_account_2",
+    "대변계정2",
+    "대변 계정2",
+    "대변계정코드2",
+    "대변 계정코드 2"
+  ],
+  "credit_amount_2": [
+    "credit_amount_2",
+    "대변금액2",
+    "대변 금액2",
+    "대변액2"
+  ],
+  "supply_amount": [
+    "supply_amount",
+    "공급가액",
+    "공급 금액",
+    "공급가",
+    "세전금액",
+    "net_amount"
+  ],
+  "vat_amount": [
+    "vat_amount",
+    "부가세",
+    "부가세액",
+    "세액",
+    "VAT",
+    "tax_amount"
+  ],
+  "total_amount": [
+    "total_amount",
+    "합계금액",
+    "합계 금액",
+    "총금액",
+    "총액",
+    "결제금액",
+    "gross_amount"
+  ],
+  "remarks": [
+    "remarks",
+    "비고",
+    "메모",
+    "특이사항",
+    "remark",
+    "note"
+  ],
+  "line_no": [
+    "순번",
+    "행번호",
+    "line_number"
+  ],
+  "account_code": [
+    "계정코드",
+    "계정과목코드"
+  ],
+  "account_name": [
+    "계정명",
+    "계정과목"
+  ],
+  "debit_amount": [
+    "차변금액",
+    "차변액"
+  ],
+  "credit_amount": [
+    "대변금액",
+    "대변액"
+  ],
+  "debit_credit_type": [
+    "차대구분",
+    "차대변구분",
+    "dr_cr"
+  ],
+  "amount": [
+    "금액"
+  ],
+  "tax_type": [
+    "과세유형",
+    "세금유형"
+  ]
+}

@@ -2,10 +2,16 @@
 
 from time import perf_counter
 
-from journal_validator import main as run_validation
-from prepare_erp_upload import main as run_erp_conversion
-from load_database import main as run_database_loading
-from export_dashboard_data import main as run_dashboard_export
+# 기존 파일 직접 실행에서도 동일한 패키지 모듈을 사용한다.
+if __name__ == "__main__" and not __package__:
+    from _bootstrap import configure_script_imports
+
+    configure_script_imports(__file__)
+
+from src.journal_validator import main as run_validation
+from src.prepare_erp_upload import main as run_erp_conversion
+from src.load_database import main as run_database_loading
+from src.export_dashboard_data import main as run_dashboard_export
 
 
 # 실행할 작업의 이름과 함수를 처리 순서대로 정의
@@ -46,7 +52,7 @@ def run_step(step_name, step_function):
     print(f"소요 시간: {elapsed_time:.2f}초")
 
 
-def main():
+def run_legacy_pipeline() -> None:
     """전체 분개장 검증 및 ERP 변환 파이프라인 실행."""
 
     pipeline_start_time = perf_counter()
@@ -65,6 +71,16 @@ def main():
     print("전체 파이프라인 실행 완료")
     print(f"전체 소요 시간: {total_elapsed_time:.2f}초")
     print("=" * 60)
+
+
+def main() -> None:
+    """업로드 파일 기준 CLI를 실행하고 기존 데모는 명시적으로만 허용한다."""
+    import sys
+    if sys.argv[1:] == ["--legacy-demo"]:
+        run_legacy_pipeline()
+    else:
+        from src.adaptive_database import main as run_uploaded_file
+        run_uploaded_file()
 
 
 if __name__ == "__main__":

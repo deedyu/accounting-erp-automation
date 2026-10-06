@@ -3,7 +3,13 @@
 import sqlite3
 import pandas as pd
 
-from journal_validator import PROJECT_ROOT
+# 기존 파일 직접 실행에서도 동일한 패키지 모듈을 사용한다.
+if __name__ == "__main__" and not __package__:
+    from _bootstrap import configure_script_imports
+
+    configure_script_imports(__file__)
+
+from src.journal_validator import PROJECT_ROOT
 
 
 # 데이터베이스 경로
