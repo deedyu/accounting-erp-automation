@@ -1,0 +1,2 @@
+# Jupyter notebooks are kept as development records, not counted as the main source language.
+*.ipynb linguist-documentation
